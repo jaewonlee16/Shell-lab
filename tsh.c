@@ -331,8 +331,11 @@ void waitfg(pid_t pid)
 	if (job == NULL)
 		return;
 
+	sigset_t empty_mask;
+	sigemptyset(&empty_mask);
+
 	while (pid == fgpid(jobs)){
-		;
+		sigsuspend(&empty_mask);
 	}
 
 

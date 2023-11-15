@@ -434,6 +434,14 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+	int olderrno = errno;
+	pid_t pid = fgpid(jobs);
+	
+	if(pid){
+		kill(-pid, sig);
+	}
+	
+	errno = olderrno;
     return;
 }
 

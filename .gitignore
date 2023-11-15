@@ -1,6 +1,10 @@
 # Created by https//www.toptal.com/developers/gitignore/api/c
 # Edit at https://www.toptal.com/developers/gitignore?templates=c
 
+# files for testing
+trace_cmd.sh
+tshref_result
+
 # exe files
 tsh
 mysplit

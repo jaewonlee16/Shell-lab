@@ -262,6 +262,59 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+	struct job_t* job;
+	char* second_argument = argv[1];
+	int JID;
+	pid_t PID;
+
+	if(j==NULL){
+        	fprintf(stderr,"%s command requires PID or %%jobid argument\n",argv[0]);
+        	return;
+	}
+
+	isJobID = second_argument[0] == '%';
+	if (isJobID){
+		JID = atoi(second_argument + 1);
+		if (!JID){
+			fprintf(stderr, "%s: argument must be a PID or %%jobid\n", argv[0]);
+			return;
+		}
+
+		job = getjobjid(jobs, JID);
+
+		if (job == NULL){
+			fprintf(stderr, "%s no such job\n", argv[1]);
+			return;
+		}
+	}
+	else{
+		PID = atoi(second_argument);
+		if (!PID){
+			fprintf(stderr, "%s: argument must be a PID or %%jobid\n", argv[0]);
+			return;
+		}
+
+		job = getjobpid(jobs, PID);
+		if (job == NULL){
+			fprintf(stderr, "(%s) no such process\n", argv[1]);
+			return;
+		}
+	}
+
+	PID = job->pid;
+
+	if(!strcmp("bg", argv[0])){ // background
+		job->state = BG;
+		printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
+		kill(-PID, SIGCONT);
+		
+	}
+	else{ // foreground
+		job->state = FG;
+		kill(-PID, SIGCONT);
+		waitfg(job->pid);
+	}
+
     return;
 }
 

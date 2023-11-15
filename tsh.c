@@ -382,8 +382,50 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+	int olderrno = errno;
+	sigset_t mask_all, prev_mask;
+	pid_t pid;
+	int status;
+	
+	/* for write */
+	char* error_message;
+	size_t length;
+
+	sigfillset(&mask_all);
+	
+	while((pid = waitpid(-1, &status, WNOHANG | WUNTRACED))>0){
+		if(WIFEXITED(status)){
+			sigprocmask(SIG_BLOCK, &mask_all, &prev_mask); // Block all signal
+			deletejob(jobs,pid);
+			sigprocmask(SIG_SETMASK, &prev_mask, NULL); // Resume signal mask
+		}
+
+		else if(WIFSTOPPED(status)){
+			fprintf(stderr,"Job [%d] (%d) stopped by signal %d\n", pid2jid(pid),pid,WSTOPSIG(status));
+			sigprocmask(SIG_BLOCK, &mask_all, &prev_mask); // Block all signal
+			getjobpid(jobs, pid)->state = ST;
+			sigprocmask(SIG_SETMASK, &prev_mask, NULL);
+			
+		}
+		
+		else if(WIFSIGNALED(status)){
+			fprintf(stderr,"Job [%d] (%d) terminated by signal %d\n",pid2jid(pid),pid,WTERMSIG(status));
+			sigprocmask(SIG_BLOCK, &mask_all, &prev_mask); // Block all signal
+			deletejob(jobs,pid);
+			sigprocmask(SIG_SETMASK, &prev_mask, NULL);
+			
+			
+		}
+		
+	}
+	if(pid != 0 && errno != ECHILD)
+		puts("waitpid error");
+	errno = olderrno;
+	
+	
     return;
 }
+
 
 /* 
  * sigint_handler - The kernel sends a SIGINT to the shell whenver the

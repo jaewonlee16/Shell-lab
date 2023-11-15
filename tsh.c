@@ -174,7 +174,7 @@ void eval(char *cmdline)
 	if (argv[0] == NULL)
 		return;
 
-	if (!builtin_command(argv))
+	if (!builtin_cmd(argv))
     return;
 }
 
@@ -246,7 +246,7 @@ int builtin_cmd(char **argv)
 	if (!strcmp(argv[0], "&"))
 		return 1;
 	if (!strcmp(argv[0], "jobs")){
-		list_jobs(jobs);
+		listjobs(jobs);
 		return 1;
 	}
 	if (!strcmp(argv[0], "bg") || !strcmp(argv[0], "fg")){
@@ -267,12 +267,12 @@ void do_bgfg(char **argv)
 	int JID;
 	pid_t PID;
 
-	if(j==NULL){
+	if(second_argument==NULL){
         	fprintf(stderr,"%s command requires PID or %%jobid argument\n",argv[0]);
         	return;
 	}
 
-	isJobID = second_argument[0] == '%';
+	int isJobID = second_argument[0] == '%';
 	if (isJobID){
 		JID = atoi(second_argument + 1);
 		if (!JID){

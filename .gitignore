@@ -42,6 +42,7 @@ mystop
 # Executables
 *.exe
 *.out
+!tshref.out
 *.app
 *.i*86
 *.x86_64

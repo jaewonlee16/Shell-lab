@@ -185,7 +185,7 @@ void eval(char *cmdline)
 			sigprocmask(SIG_SETMASK, &prev_one, NULL); // Unblock SIGCHLD
 			setpgid(0, 0);
 			if(execve(argv[0], argv, environ) < 0){
-				printf("%s: Command not found.\n", argv[0]);
+				printf("%s: Command not found\n", argv[0]);
 				exit(0);
 			}
 		}
@@ -310,7 +310,7 @@ void do_bgfg(char **argv)
 		job = getjobjid(jobs, JID);
 
 		if (job == NULL){
-			fprintf(stderr, "%s no such job\n", argv[1]);
+			fprintf(stderr, "%s: No such job\n", argv[1]);
 			return;
 		}
 	}
@@ -323,7 +323,7 @@ void do_bgfg(char **argv)
 
 		job = getjobpid(jobs, PID);
 		if (job == NULL){
-			fprintf(stderr, "(%s) no such process\n", argv[1]);
+			fprintf(stderr, "(%s): No such process\n", argv[1]);
 			return;
 		}
 	}

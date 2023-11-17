@@ -185,7 +185,7 @@ void eval(char *cmdline)
 			sigprocmask(SIG_SETMASK, &prev_one, NULL); // Unblock SIGCHLD
 			setpgid(0, 0);
 			if(execve(argv[0], argv, environ) < 0){
-				printf("%s: Command not found\n", argv[0]);
+				fprintf(stderr, "%s: Command not found\n", argv[0]);
 				exit(0);
 			}
 		}
@@ -362,7 +362,7 @@ void waitfg(pid_t pid)
 	sigemptyset(&empty_mask);
 
 	while (pid == fgpid(jobs)){
-		sigsuspend(&empty_mask);
+		sigsuspend(&empty_mask); // Fast and no race!
 	}
 
 
@@ -387,10 +387,6 @@ void sigchld_handler(int sig)
 	pid_t pid;
 	int status;
 	
-	/* for write */
-	char* error_message;
-	size_t length;
-
 	sigfillset(&mask_all);
 	
 	while((pid = waitpid(-1, &status, WNOHANG | WUNTRACED))>0){
@@ -418,8 +414,8 @@ void sigchld_handler(int sig)
 		}
 		
 	}
-	if(pid != 0 && errno != ECHILD)
-		puts("waitpid error");
+	if(pid != 0 && errno != ECHILD) // pid = 0 means child process are not terminated
+		puts("waitpid error"); // This message is not printed in trace files
 	errno = olderrno;
 	
 	
@@ -437,9 +433,8 @@ void sigint_handler(int sig)
 	int olderrno = errno;
 	pid_t pid = fgpid(jobs);
 	
-	if(pid){
+	if(pid != 0)
 		kill(-pid, sig);
-	}
 	
 	errno = olderrno;
     return;
@@ -455,7 +450,7 @@ void sigtstp_handler(int sig)
 	int olderrno = errno;
 	pid_t pid = fgpid(jobs);
 	
-	if (pid)
+	if (pid != 0)
 		kill(-pid, sig);
 	getjobpid(jobs,pid)->state = ST;
 	errno = olderrno;
